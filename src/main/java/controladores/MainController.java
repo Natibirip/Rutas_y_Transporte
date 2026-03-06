@@ -10,8 +10,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.event.ActionEvent;
-
-// IMPORTANTE: Asegúrate de tener estas importaciones para dibujar
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.paint.Color;
@@ -19,22 +17,37 @@ import javafx.geometry.Point2D;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import javafx.scene.shape.Polygon;
+import javafx.scene.Group;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.stage.Modality;
+import java.io.IOException;
 
 public class MainController {
 
     private Grafo redTransporte;
 
-    // Aquí declaramos el diccionario para la Opción 1 (separar lógica de vista)
     private Map<Parada, Point2D> coordenadasMapa = new HashMap<>();
 
-    @FXML private ComboBox<Parada> comboOrigen;
-    @FXML private ComboBox<Parada> comboDestino;
-    @FXML private ComboBox<Criterio> comboCriterio;
-    @FXML private Pane mapaPane;
-    @FXML private Label lblResultadoRuta;
-    @FXML private Label lblTiempo;
-    @FXML private Label lblDistancia;
-    @FXML private Label lblCosto;
+    @FXML
+    private ComboBox<Parada> comboOrigen;
+    @FXML
+    private ComboBox<Parada> comboDestino;
+    @FXML
+    private ComboBox<Criterio> comboCriterio;
+    @FXML
+    private Pane mapaPane;
+    @FXML
+    private Label lblResultadoRuta;
+    @FXML
+    private Label lblTiempo;
+    @FXML
+    private Label lblDistancia;
+    @FXML
+    private Label lblCosto;
 
     @FXML
     public void initialize() {
@@ -43,17 +56,47 @@ public class MainController {
         comboCriterio.setValue(Criterio.TIEMPO);
 
         cargarDatosDePrueba();
-        dibujarGrafo(); // <--- Se llama aquí mismo al iniciar la app
+        dibujarGrafo();
     }
 
-    // --------------------------------------------------------
-    // AQUÍ ES DONDE PONES EL MÉTODO dibujarGrafo()
-    // --------------------------------------------------------
+    private Group crearFlecha(double startX, double startY, double endX, double endY, Color color, double grosor) {
+        Group flechaGrupo = new Group();
+
+        double dx = endX - startX;
+        double dy = endY - startY;
+        double angulo = Math.atan2(dy, dx);
+        double radioNodo = 15.0;
+
+        double ajusteStartX = startX + radioNodo * Math.cos(angulo);
+        double ajusteStartY = startY + radioNodo * Math.sin(angulo);
+        double ajusteEndX = endX - radioNodo * Math.cos(angulo);
+        double ajusteEndY = endY - radioNodo * Math.sin(angulo);
+
+        Line linea = new Line(ajusteStartX, ajusteStartY, ajusteEndX, ajusteEndY);
+        linea.setStrokeWidth(grosor);
+        linea.setStroke(color);
+
+        double tamañoPunta = 10.0 + (grosor - 2.0) * 2;
+        Polygon punta = new Polygon();
+        punta.getPoints().addAll(
+                ajusteEndX, ajusteEndY,
+                ajusteEndX - tamañoPunta * Math.cos(angulo - Math.PI / 6), ajusteEndY - tamañoPunta * Math.sin(angulo - Math.PI / 6),
+                ajusteEndX - tamañoPunta * Math.cos(angulo + Math.PI / 6), ajusteEndY - tamañoPunta * Math.sin(angulo + Math.PI / 6)
+        );
+        punta.setFill(color);
+
+        flechaGrupo.getChildren().addAll(linea, punta);
+        return flechaGrupo;
+    }
+
     private void dibujarGrafo() {
+        dibujarGrafo(null);
+    }
+
+    private void dibujarGrafo(List<Parada> rutaOptima) {
         mapaPane.getChildren().clear();
         Map<Parada, List<Ruta>> adyacencia = redTransporte.getAdyacencia();
 
-        // 1. Dibujar las Rutas (Líneas)
         for (Parada origen : adyacencia.keySet()) {
             for (Ruta ruta : adyacencia.get(origen)) {
                 Parada destino = ruta.getDestino();
@@ -62,20 +105,34 @@ public class MainController {
                 Point2D posDestino = coordenadasMapa.get(destino);
 
                 if (posOrigen != null && posDestino != null) {
-                    Line linea = new Line(posOrigen.getX(), posOrigen.getY(), posDestino.getX(), posDestino.getY());
-                    linea.setStrokeWidth(2);
-                    linea.setStroke(Color.GRAY);
-                    mapaPane.getChildren().add(linea);
+                    boolean esParteDeRuta = false;
+
+                    if (rutaOptima != null && rutaOptima.size() > 1) {
+                        for (int i = 0; i < rutaOptima.size() - 1; i++) {
+                            if (rutaOptima.get(i).equals(origen) && rutaOptima.get(i + 1).equals(destino)) {
+                                esParteDeRuta = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    Color colorFlecha = esParteDeRuta ? Color.LIMEGREEN : Color.LIGHTGRAY;
+                    double grosor = esParteDeRuta ? 4.0 : 2.0;
+
+                    Group flecha = crearFlecha(posOrigen.getX(), posOrigen.getY(), posDestino.getX(), posDestino.getY(), colorFlecha, grosor);
+                    mapaPane.getChildren().add(flecha);
                 }
             }
         }
 
-        // 2. Dibujar las Paradas (Círculos)
         for (Parada p : adyacencia.keySet()) {
             Point2D pos = coordenadasMapa.get(p);
 
             if (pos != null) {
-                Circle nodo = new Circle(pos.getX(), pos.getY(), 15, Color.DODGERBLUE);
+                boolean esNodoDeRuta = rutaOptima != null && rutaOptima.contains(p);
+                Color colorBase = esNodoDeRuta ? Color.LIMEGREEN : Color.DODGERBLUE;
+
+                Circle nodo = new Circle(pos.getX(), pos.getY(), 15, colorBase);
                 nodo.setStroke(Color.DARKBLUE);
                 nodo.setStrokeWidth(2);
 
@@ -89,7 +146,7 @@ public class MainController {
                 });
 
                 nodo.setOnMouseEntered(e -> nodo.setFill(Color.LIGHTBLUE));
-                nodo.setOnMouseExited(e -> nodo.setFill(Color.DODGERBLUE));
+                nodo.setOnMouseExited(e -> nodo.setFill(colorBase));
 
                 Label etiqueta = new Label(p.getNombre());
                 etiqueta.setLayoutX(pos.getX() - 20);
@@ -101,11 +158,7 @@ public class MainController {
         }
     }
 
-    // --------------------------------------------------------
-    // AQUÍ PONES EL MÉTODO cargarDatosDePrueba()
-    // --------------------------------------------------------
     private void cargarDatosDePrueba() {
-        // 1. Crear las Paradas
         Parada p1 = new Parada("P1", "Estación Central", "Centro");
         Parada p2 = new Parada("P2", "Terminal Norte", "Norte");
         Parada p3 = new Parada("P3", "Plaza Sur", "Sur");
@@ -120,7 +173,6 @@ public class MainController {
             redTransporte.agregarParada(p);
         }
 
-        // 2. Asignar las coordenadas visuales
         coordenadasMapa.put(p1, new Point2D(400, 300));
         coordenadasMapa.put(p2, new Point2D(400, 100));
         coordenadasMapa.put(p3, new Point2D(400, 500));
@@ -130,34 +182,25 @@ public class MainController {
         coordenadasMapa.put(p7, new Point2D(650, 480));
         coordenadasMapa.put(p8, new Point2D(150, 120));
 
-        // 3. Agregar Rutas (ESTRICTAMENTE DIRIGIDAS)
-        // Parámetros: Destino, Tiempo (min), Costo ($), Distancia (km)
 
-        // Salidas desde la Central (P1)
         redTransporte.agregarRuta(p1, new Ruta(p2, 10, 20.0, 4.0)); // P1 -> P2
         redTransporte.agregarRuta(p1, new Ruta(p3, 12, 20.0, 5.0)); // P1 -> P3
 
-        // Retorno hacia la Central (P3 -> P1 es más lento por el tráfico)
         redTransporte.agregarRuta(p3, new Ruta(p1, 18, 20.0, 5.0));
 
-        // Ruta circular periférica de una sola vía: P2 -> P6 -> P4 -> P7 -> P3
         redTransporte.agregarRuta(p2, new Ruta(p6, 12, 15.0, 5.0));
         redTransporte.agregarRuta(p6, new Ruta(p4, 8, 15.0, 3.0));
         redTransporte.agregarRuta(p4, new Ruta(p7, 11, 20.0, 4.5));
         redTransporte.agregarRuta(p7, new Ruta(p3, 10, 15.0, 4.0));
 
-        // Conexiones hacia el Oeste (P5 y P8)
         redTransporte.agregarRuta(p1, new Ruta(p5, 15, 25.0, 6.0));
         redTransporte.agregarRuta(p5, new Ruta(p8, 8, 10.0, 3.0));
         redTransporte.agregarRuta(p8, new Ruta(p2, 14, 20.0, 5.5)); // P8 conecta de vuelta al Norte
 
-        // LA RUTA TRAMPA (Directo de P1 a P6, pero carísima)
         redTransporte.agregarRuta(p1, new Ruta(p6, 5, 100.0, 2.0));
 
-        // Retorno expreso desde la Universidad (P4) a la Central (P1)
         redTransporte.agregarRuta(p4, new Ruta(p1, 25, 30.0, 8.0));
 
-        // 4. Poblar los selectores
         comboOrigen.getItems().addAll(todasLasParadas);
         comboDestino.getItems().addAll(todasLasParadas);
     }
@@ -169,27 +212,63 @@ public class MainController {
         Criterio criterio = comboCriterio.getValue();
 
         if (origen == null || destino == null || criterio == null) {
-            System.out.println("Por favor seleccione todos los campos.");
+            lblResultadoRuta.setText("Por favor, seleccione Origen, Destino y Criterio.");
+            return;
+        }
+
+        if (origen.equals(destino)) {
+            lblResultadoRuta.setText("El origen y destino son iguales.");
+            dibujarGrafo(); // Redibujar normal
             return;
         }
 
         ResultadoRuta resultado = redTransporte.calcularRuta(origen, destino, criterio);
 
-        if (resultado != null) {
+        if (resultado != null && !resultado.getCamino().isEmpty()) {
             lblResultadoRuta.setText("Ruta: " + resultado.getCamino().toString());
             lblTiempo.setText("Tiempo: " + resultado.getTiempoTotal() + " min");
             lblDistancia.setText("Distancia: " + resultado.getDistanciaTotal() + " km");
             lblCosto.setText("Costo: $" + resultado.getCostoTotal());
 
-            // Dibujar la ruta resaltada en el mapaPane
+            dibujarGrafo(resultado.getCamino());
         } else {
-            lblResultadoRuta.setText("Ruta: No hay camino disponible");
+            lblResultadoRuta.setText("No hay ruta disponible entre estas paradas.");
+            lblTiempo.setText("Tiempo: 0 min");
+            lblDistancia.setText("Distancia: 0 km");
+            lblCosto.setText("Costo: $0.00");
+
+            dibujarGrafo();
         }
     }
 
     //abror ventana
     @FXML
     private void abrirGestor(ActionEvent event) {
-        System.out.println("Abriendo ventana de gestión...");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/vistas/GestorView.fxml"));
+            Parent root = loader.load();
+
+            GestorController gestorController = loader.getController();
+
+            gestorController.inicializarDatos(redTransporte, coordenadasMapa, this);
+
+            Stage stage = new Stage();
+            stage.setTitle("Gestor de Paradas y Rutas");
+            stage.setScene(new Scene(root));
+
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void actualizarVistaCompleta() {
+        dibujarGrafo();
+        // Aquí también deberías re-poblar los ComboBox de la ventana principal
+        comboOrigen.getItems().setAll(redTransporte.getAdyacencia().keySet());
+        comboDestino.getItems().setAll(redTransporte.getAdyacencia().keySet());
     }
 }
