@@ -92,6 +92,42 @@ public class Grafo {
         }
     }
 
+
+
+
+    public List<Parada> TrabordosBfs(Parada origen, Parada destino) {
+
+        Map<Parada, Parada> anteriores = new HashMap<>();
+        Set<Parada> visitados = new HashSet<>();
+        Queue<Parada> cola = new LinkedList<>();
+
+        cola.add(origen);
+        visitados.add(origen);
+
+        while (!cola.isEmpty()) {
+
+            Parada actual = cola.poll();
+
+            if (actual.equals(destino)) {
+                break;
+            }
+
+            for (Ruta ruta : adyacencia.get(actual)) {
+
+                Parada vecino = ruta.getDestino();
+
+                if (!visitados.contains(vecino)) {
+
+                    visitados.add(vecino);
+                    anteriores.put(vecino, actual);
+                    cola.add(vecino);
+                }
+            }
+        }
+
+        return reconstruirCamino(anteriores, origen, destino);
+    }
+
     public List<Parada> dijkstra (Parada origen, Parada destino, Criterio criterio) {
 
         Map<Parada, Double> distancias = new HashMap<>();
