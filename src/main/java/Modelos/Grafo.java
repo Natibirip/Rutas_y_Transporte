@@ -47,7 +47,15 @@ public class Grafo {
 
     public ResultadoRuta calcularRuta(Parada origen,Parada destino,Criterio criterio) {
 
-        List<Parada> camino = dijkstra(origen, destino, criterio);
+        int AlgoritmoAUsar = DecidirAlgoritmo(criterio);
+        List<Parada> camino;
+        if(AlgoritmoAUsar == 1){
+             camino = TrasbordosBfs(origen, destino);
+        }
+        else {
+             camino = dijkstra(origen, destino, criterio);
+        }
+
 
         if (camino.isEmpty()) {
             return null; // (((((Recordatorio para agregar excepción))))
@@ -94,8 +102,20 @@ public class Grafo {
 
 
 
+    public int DecidirAlgoritmo( Criterio criterio) {
+        switch (criterio) {
+            case TRASBORDOS:
+                return 1;
+            case COSTO:
+            case TIEMPO:
+            case DISTANCIA:
+                return 2;
 
-    public List<Parada> TrabordosBfs(Parada origen, Parada destino) {
+        }
+        return 0;
+    }
+
+    public List<Parada> TrasbordosBfs(Parada origen, Parada destino) {
 
         Map<Parada, Parada> anteriores = new HashMap<>();
         Set<Parada> visitados = new HashSet<>();

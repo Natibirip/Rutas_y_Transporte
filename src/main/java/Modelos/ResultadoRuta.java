@@ -7,19 +7,19 @@ public class ResultadoRuta {
     private final double tiempoTotal;
     private final double costoTotal;
     private final double distanciaTotal;
-    private final int transbordos;
+    private final int trasbordos;
 
     public ResultadoRuta(List<Parada> camino,
                          double tiempoTotal,
                          double costoTotal,
                          double distanciaTotal,
-                         int transbordos) {
+                         int trasbordos) {
 
         this.camino = camino;
         this.tiempoTotal = tiempoTotal;
         this.costoTotal = costoTotal;
         this.distanciaTotal = distanciaTotal;
-        this.transbordos = transbordos;
+        this.trasbordos = trasbordos;
     }
 
     public List<Parada> getCamino() {
@@ -34,7 +34,6 @@ public class ResultadoRuta {
     public double getDistanciaTotal() {
         return distanciaTotal;
     }
-    public int getTransbordos() {
-        return transbordos;
+    public int getTrasbordos() {return trasbordos;
     }
 }
