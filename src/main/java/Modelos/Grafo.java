@@ -218,4 +218,40 @@ public class Grafo {
         return new ArrayList<>(); // no hay camino
     }
 
+
+    public void verificarEntradasYSalidas() {
+
+        Map<Parada, Integer> conteoEntradas = new HashMap<>();
+
+        // Inicializar conteo de entradas
+        for (Parada parada : adyacencia.keySet()) {
+            conteoEntradas.put(parada, 0);
+        }
+
+        // Revisar salidas y contar entradas
+        for (Parada origen : adyacencia.keySet()) {
+
+            List<Ruta> rutas = adyacencia.get(origen);
+
+            // Verificar si hay salidas para origen
+            if (rutas.isEmpty()) {
+                System.out.println("La parada " + origen + " no tiene rutas de salida.");
+            }
+
+            // Conteo de entradas para el origen
+            for (Ruta ruta : rutas) {
+                Parada destino = ruta.getDestino();
+                conteoEntradas.put(destino, conteoEntradas.get(destino) + 1);
+            }
+        }
+
+        // Verificar si hay entradas entradas para todas las pradas
+        for (Parada parada : conteoEntradas.keySet()) {
+
+            if (conteoEntradas.get(parada) == 0) {
+                System.out.println("La parada " + parada + " no tiene rutas de entrada.");
+            }
+        }
+    }
+
 }
