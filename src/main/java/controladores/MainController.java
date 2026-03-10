@@ -218,7 +218,7 @@ public class MainController {
 
         if (origen.equals(destino)) {
             lblResultadoRuta.setText("El origen y destino son iguales.");
-            dibujarGrafo(); // Redibujar normal
+            dibujarGrafo();
             return;
         }
 
@@ -267,7 +267,6 @@ public class MainController {
 
     public void actualizarVistaCompleta() {
         dibujarGrafo();
-        // Aquí también deberías re-poblar los ComboBox de la ventana principal
         comboOrigen.getItems().setAll(redTransporte.getAdyacencia().keySet());
         comboDestino.getItems().setAll(redTransporte.getAdyacencia().keySet());
     }

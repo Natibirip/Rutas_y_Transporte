@@ -11,7 +11,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            // Verifica si la URL es nula antes de cargar
+
             var fxmlUrl = getClass().getResource("/vistas/MainView.fxml");
             if (fxmlUrl == null) {
                 System.err.println("CRÍTICO: No se encontró el archivo FXML en la ruta especificada.");
@@ -24,7 +24,7 @@ public class MainApp extends Application {
             primaryStage.show();
 
         } catch (Exception e) {
-            e.printStackTrace(); // Esto nos dirá exactamente qué falló
+            e.printStackTrace();
         }
     }
 
