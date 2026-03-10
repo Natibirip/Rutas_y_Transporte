@@ -4,19 +4,26 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="500.0" prefWidth="600.0" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="controladores.GestorController">
+<AnchorPane prefHeight="550.0" prefWidth="600.0" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="controladores.GestorController">
     <children>
-        <TabPane layoutX="14.0" layoutY="14.0" prefHeight="500.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <TabPane layoutX="14.0" layoutY="14.0" prefHeight="550.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <tabs>
                 <Tab text="Gestión de Paradas">
                     <content>
                         <VBox spacing="15.0">
                             <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0" /></padding>
-                            <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Agregar Nueva Parada" />
+                            <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Gestor de Paradas" />
+
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <Label text="Seleccionar Parada:" />
+                                <ComboBox fx:id="comboEditarParada" onAction="#seleccionarParadaParaEditar" prefWidth="250.0" promptText="-- Nueva Parada --" />
+                            </HBox>
+
+                            <Separator />
 
                             <GridPane hgap="10" vgap="10">
                                 <Label text="ID (ej. P9):" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                                <TextField fx:id="txtIdParada" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                <TextField fx:id="txtIdParada" promptText="No modificable al editar" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
                                 <Label text="Nombre:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
                                 <TextField fx:id="txtNombreParada" GridPane.columnIndex="1" GridPane.rowIndex="1" />
@@ -31,7 +38,11 @@
                                 <TextField fx:id="txtYParada" promptText="Ej. 300" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                             </GridPane>
 
-                            <Button fx:id="btnAgregarParada" onAction="#agregarParada" prefWidth="150.0" style="-fx-background-color: #28a745; -fx-text-fill: white;" text="Agregar Parada" />
+                            <HBox spacing="15.0">
+                                <Button fx:id="btnAgregarParada" onAction="#agregarParada" prefWidth="120.0" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-font-weight: bold;" text="Agregar" />
+                                <Button fx:id="btnModificarParada" disable="true" onAction="#modificarParada" prefWidth="120.0" style="-fx-background-color: #ffc107; -fx-text-fill: black; -fx-font-weight: bold;" text="Modificar" />
+                                <Button fx:id="btnEliminarParada" disable="true" onAction="#eliminarParada" prefWidth="120.0" style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold;" text="Eliminar" />
+                            </HBox>
                             <Label fx:id="lblMensajeParada" textFill="RED" />
                         </VBox>
                     </content>
@@ -41,14 +52,16 @@
                     <content>
                         <VBox spacing="15.0">
                             <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0" /></padding>
-                            <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Agregar Nueva Ruta" />
+                            <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Gestor de Rutas" />
+
+                            <Label text="Seleccione Origen y Destino para cargar o crear una ruta:" textFill="GRAY" />
 
                             <GridPane hgap="10" vgap="10">
                                 <Label text="Origen:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                                <ComboBox fx:id="comboNuevoOrigen" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                <ComboBox fx:id="comboNuevoOrigen" onAction="#verificarRutaExistente" prefWidth="250.0" promptText="Seleccione Origen..." GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
                                 <Label text="Destino:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                                <ComboBox fx:id="comboNuevoDestino" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                <ComboBox fx:id="comboNuevoDestino" onAction="#verificarRutaExistente" prefWidth="250.0" promptText="Seleccione Destino..." GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
                                 <Label text="Tiempo (min):" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                                 <TextField fx:id="txtTiempoRuta" GridPane.columnIndex="1" GridPane.rowIndex="2" />
@@ -60,7 +73,11 @@
                                 <TextField fx:id="txtDistanciaRuta" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                             </GridPane>
 
-                            <Button fx:id="btnAgregarRuta" onAction="#agregarRuta" prefWidth="150.0" style="-fx-background-color: #0078D7; -fx-text-fill: white;" text="Agregar Ruta" />
+                            <HBox spacing="15.0">
+                                <Button fx:id="btnAgregarRuta" onAction="#agregarRuta" prefWidth="120.0" style="-fx-background-color: #0078D7; -fx-text-fill: white; -fx-font-weight: bold;" text="Agregar" />
+                                <Button fx:id="btnModificarRuta" disable="true" onAction="#modificarRuta" prefWidth="120.0" style="-fx-background-color: #ffc107; -fx-text-fill: black; -fx-font-weight: bold;" text="Modificar" />
+                                <Button fx:id="btnEliminarRuta" disable="true" onAction="#eliminarRuta" prefWidth="120.0" style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold;" text="Eliminar" />
+                            </HBox>
                             <Label fx:id="lblMensajeRuta" textFill="RED" />
                         </VBox>
                     </content>

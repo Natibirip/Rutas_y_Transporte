@@ -253,5 +253,22 @@ public class Grafo {
             }
         }
     }
+    public void eliminarParada(Parada p) {
+        if (!adyacencia.containsKey(p)) return;
+
+        //Elimina ruta
+        for (List<Ruta> rutas : adyacencia.values()) {
+            rutas.removeIf(ruta -> ruta.getDestino().equals(p));
+        }
+
+        // Eliminar la parada
+        adyacencia.remove(p);
+    }
+
+    public void eliminarRuta(Parada origen, Parada destino) {
+        if (adyacencia.containsKey(origen)) {
+            adyacencia.get(origen).removeIf(ruta -> ruta.getDestino().equals(destino));
+        }
+    }
 
 }
