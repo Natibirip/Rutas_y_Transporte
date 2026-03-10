@@ -150,19 +150,19 @@ public class Grafo {
 
     public List<Parada> dijkstra (Parada origen, Parada destino, Criterio criterio) {
 
-        Map<Parada, Double> distancias = new HashMap<>();
+        Map<Parada, Double> peso = new HashMap<>();
         Map<Parada, Parada> anteriores = new HashMap<>();
         Set<Parada> visitados = new HashSet<>();
 
         PriorityQueue<Parada> cola =
-                new PriorityQueue<>(Comparator.comparingDouble(distancias::get));
+                new PriorityQueue<>(Comparator.comparingDouble(peso::get));
 
-        // Inicializar las distancias
+        // Inicializar peso
         for (Parada p : adyacencia.keySet()) {
-            distancias.put(p, Double.POSITIVE_INFINITY);
+            peso.put(p, Double.POSITIVE_INFINITY);
         }
 
-        distancias.put(origen, 0.0);
+        peso.put(origen, 0.0);
         cola.add(origen);
 
         while (!cola.isEmpty()) {
@@ -182,12 +182,12 @@ public class Grafo {
                 if (visitados.contains(vecino)) continue;
 
                 double nuevaDistancia =
-                        distancias.get(actual)
+                        peso.get(actual)
                                 + obtenerPeso(ruta, criterio);
 
-                if (nuevaDistancia < distancias.get(vecino)) {
+                if (nuevaDistancia < peso.get(vecino)) {
 
-                    distancias.put(vecino, nuevaDistancia);
+                    peso.put(vecino, nuevaDistancia);
                     anteriores.put(vecino, actual);
                     cola.add(vecino);
                 }
