@@ -245,7 +245,7 @@ public class MainController {
     @FXML
     private void abrirGestor(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/vistas/GestorView.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/vistas/GestorView.fxml")); //injectar dependency
             Parent root = loader.load();
 
             GestorController gestorController = loader.getController();
