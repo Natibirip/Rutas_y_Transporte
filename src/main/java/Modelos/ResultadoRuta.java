@@ -25,15 +25,21 @@ public class ResultadoRuta {
     public List<Parada> getCamino() {
         return camino;
     }
+
     public double getTiempoTotal() {
         return tiempoTotal;
     }
+
     public double getCostoTotal() {
         return costoTotal;
     }
+
     public double getDistanciaTotal() {
         return distanciaTotal;
     }
-    public int getTrasbordos() {return trasbordos;
+
+    public int getTrasbordos() {
+        return trasbordos;
     }
+
 }
