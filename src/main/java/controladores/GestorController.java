@@ -2,6 +2,7 @@ package controladores;
 import Modelos.Grafo;
 import Modelos.Parada;
 import Modelos.Ruta;
+import Modelos.TipoVehiculo;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -31,6 +32,7 @@ public class GestorController {
     @FXML private TextField txtDistanciaRuta;
     @FXML private Button btnAgregarRuta, btnModificarRuta, btnEliminarRuta;
     @FXML private Label lblMensajeRuta;
+    @FXML private ComboBox<TipoVehiculo> comboVehiculoRuta;
 
     public void inicializarDatos(Grafo grafo, Map<Parada, Point2D> coordenadas, MainController main) {
         this.redTransporte = grafo;
@@ -51,6 +53,7 @@ public class GestorController {
         comboEditarParada.getItems().addAll(redTransporte.getAdyacencia().keySet());
         comboNuevoOrigen.getItems().setAll(redTransporte.getAdyacencia().keySet());
         comboNuevoDestino.getItems().setAll(redTransporte.getAdyacencia().keySet());
+        comboVehiculoRuta.getItems().setAll(TipoVehiculo.values());
 
         if (pSeleccionada != null && redTransporte.getAdyacencia().containsKey(pSeleccionada)) {
             comboEditarParada.setValue(pSeleccionada);
@@ -188,6 +191,7 @@ public class GestorController {
             txtTiempoRuta.setText(String.valueOf(rutaExistente.getTiempo()));
             txtCostoRuta.setText(String.valueOf(rutaExistente.getCosto()));
             txtDistanciaRuta.setText(String.valueOf(rutaExistente.getDistancia()));
+            comboVehiculoRuta.setValue(rutaExistente.getVehiculo());
 
             btnAgregarRuta.setDisable(true);
             btnModificarRuta.setDisable(false);
@@ -215,6 +219,12 @@ public class GestorController {
         try {
             Parada origen = comboNuevoOrigen.getValue();
             Parada destino = comboNuevoDestino.getValue();
+            TipoVehiculo vehiculo = comboVehiculoRuta.getValue();
+
+            if (vehiculo == null) {
+                mostrarMensaje(lblMensajeRuta, "Por favor, seleccione un tipo de vehículo.", true);
+                return;
+            }
 
             double tiempo = Double.parseDouble(txtTiempoRuta.getText());
             double costo = Double.parseDouble(txtCostoRuta.getText());
@@ -224,7 +234,7 @@ public class GestorController {
                 redTransporte.eliminarRuta(origen, destino);
             }
 
-            redTransporte.agregarRuta(origen, new Ruta(destino, tiempo, costo, distancia));
+            redTransporte.agregarRuta(origen, new Ruta(destino, tiempo, costo, distancia, vehiculo));
 
             String msg = esModificacion ? "Ruta modificada con éxito." : "Ruta agregada con éxito.";
             finalizarAccion(msg, lblMensajeRuta);
@@ -258,6 +268,7 @@ public class GestorController {
 
     private void limpiarCamposRuta() {
         txtTiempoRuta.clear(); txtCostoRuta.clear(); txtDistanciaRuta.clear();
+        comboVehiculoRuta.setValue(null);
     }
 
     private void finalizarAccion(String mensaje, Label label) {

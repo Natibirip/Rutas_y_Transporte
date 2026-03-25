@@ -5,6 +5,7 @@ import Modelos.Grafo;
 import Modelos.Parada;
 import Modelos.Ruta;
 import Modelos.ResultadoRuta;
+import Modelos.TipoVehiculo;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -159,6 +160,7 @@ public class MainController {
     }
 
     private void cargarDatosDePrueba() {
+        // 1. Crear las Paradas
         Parada p1 = new Parada("P1", "Estación Central", "Centro");
         Parada p2 = new Parada("P2", "Terminal Norte", "Norte");
         Parada p3 = new Parada("P3", "Plaza Sur", "Sur");
@@ -173,6 +175,7 @@ public class MainController {
             redTransporte.agregarParada(p);
         }
 
+        // 2. Asignar las coordenadas visuales
         coordenadasMapa.put(p1, new Point2D(400, 300));
         coordenadasMapa.put(p2, new Point2D(400, 100));
         coordenadasMapa.put(p3, new Point2D(400, 500));
@@ -182,25 +185,34 @@ public class MainController {
         coordenadasMapa.put(p7, new Point2D(650, 480));
         coordenadasMapa.put(p8, new Point2D(150, 120));
 
+        // 3. Agregar Rutas (ESTRICTAMENTE DIRIGIDAS Y CON VEHÍCULOS)
+        // Parámetros: Destino, Tiempo (min), Costo ($), Distancia (km), TipoVehiculo
 
-        redTransporte.agregarRuta(p1, new Ruta(p2, 10, 20.0, 4.0)); // P1 -> P2
-        redTransporte.agregarRuta(p1, new Ruta(p3, 12, 20.0, 5.0)); // P1 -> P3
+        // Salidas desde la Central (P1)
+        redTransporte.agregarRuta(p1, new Ruta(p2, 10, 20.0, 4.0, TipoVehiculo.BUS));
+        redTransporte.agregarRuta(p1, new Ruta(p3, 12, 20.0, 5.0, TipoVehiculo.METRO));
 
-        redTransporte.agregarRuta(p3, new Ruta(p1, 18, 20.0, 5.0));
+        // Retorno hacia la Central
+        redTransporte.agregarRuta(p3, new Ruta(p1, 18, 20.0, 5.0, TipoVehiculo.METRO));
 
-        redTransporte.agregarRuta(p2, new Ruta(p6, 12, 15.0, 5.0));
-        redTransporte.agregarRuta(p6, new Ruta(p4, 8, 15.0, 3.0));
-        redTransporte.agregarRuta(p4, new Ruta(p7, 11, 20.0, 4.5));
-        redTransporte.agregarRuta(p7, new Ruta(p3, 10, 15.0, 4.0));
+        // Ruta circular periférica con transbordos forzados
+        redTransporte.agregarRuta(p2, new Ruta(p6, 12, 15.0, 5.0, TipoVehiculo.BUS));
+        redTransporte.agregarRuta(p6, new Ruta(p4, 8, 15.0, 3.0, TipoVehiculo.METRO)); // Transbordo (Bus a Metro)
+        redTransporte.agregarRuta(p4, new Ruta(p7, 11, 20.0, 4.5, TipoVehiculo.METRO));
+        redTransporte.agregarRuta(p7, new Ruta(p3, 10, 15.0, 4.0, TipoVehiculo.BUS)); // Transbordo (Metro a Bus)
 
-        redTransporte.agregarRuta(p1, new Ruta(p5, 15, 25.0, 6.0));
-        redTransporte.agregarRuta(p5, new Ruta(p8, 8, 10.0, 3.0));
-        redTransporte.agregarRuta(p8, new Ruta(p2, 14, 20.0, 5.5)); // P8 conecta de vuelta al Norte
+        // Conexiones hacia el Oeste (P5 y P8)
+        redTransporte.agregarRuta(p1, new Ruta(p5, 15, 25.0, 6.0, TipoVehiculo.TREN));
+        redTransporte.agregarRuta(p5, new Ruta(p8, 8, 10.0, 3.0, TipoVehiculo.TREN));
+        redTransporte.agregarRuta(p8, new Ruta(p2, 14, 20.0, 5.5, TipoVehiculo.BUS)); // Transbordo (Tren a Bus)
 
-        redTransporte.agregarRuta(p1, new Ruta(p6, 5, 100.0, 2.0));
+        // LA RUTA TRAMPA (Directo de P1 a P6, pero carísima en tiempo y dinero)
+        redTransporte.agregarRuta(p1, new Ruta(p6, 5, 100.0, 2.0, TipoVehiculo.CARRO));
 
-        redTransporte.agregarRuta(p4, new Ruta(p1, 25, 30.0, 8.0));
+        // Retorno expreso desde la Universidad
+        redTransporte.agregarRuta(p4, new Ruta(p1, 25, 30.0, 8.0, TipoVehiculo.MOTO));
 
+        // 4. Poblar los selectores
         comboOrigen.getItems().addAll(todasLasParadas);
         comboDestino.getItems().addAll(todasLasParadas);
     }
@@ -221,6 +233,14 @@ public class MainController {
             dibujarGrafo();
             return;
         }
+
+        // validacion de conexo
+        boolean redConectada = redTransporte.esFuertementeConexo();
+        String alerta = "";
+        if (!redConectada) {
+            alerta = "ALERTA: La red tiene paradas desconectadas o rutas sin retorno. \n";
+        }
+
 
         ResultadoRuta resultado = redTransporte.calcularRuta(origen, destino, criterio);
 
