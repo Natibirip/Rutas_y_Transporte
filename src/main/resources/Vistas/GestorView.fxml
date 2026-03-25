@@ -71,6 +71,9 @@
 
                                 <Label text="Distancia (km):" GridPane.columnIndex="0" GridPane.rowIndex="4" />
                                 <TextField fx:id="txtDistanciaRuta" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+
+                                <Label text="Vehículo:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                                <ComboBox fx:id="comboVehiculoRuta" prefWidth="250.0" promptText="Seleccione Vehículo..." GridPane.columnIndex="1" GridPane.rowIndex="5" />
                             </GridPane>
 
                             <HBox spacing="15.0">

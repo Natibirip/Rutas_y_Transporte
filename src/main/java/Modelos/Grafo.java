@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.LinkedList;
+import java.util.Deque;
+import java.util.ArrayDeque;
 
 public class Grafo {
 
@@ -45,46 +47,53 @@ public class Grafo {
     }
 
 
-    public ResultadoRuta calcularRuta(Parada origen,Parada destino,Criterio criterio) {
+    public ResultadoRuta calcularRuta(Parada origen, Parada destino, Criterio criterio) {
+        List<Parada> camino = new ArrayList<>();
 
-        int AlgoritmoAUsar = DecidirAlgoritmo(criterio);
-        List<Parada> camino;
-        if(AlgoritmoAUsar == 1){
-             camino = TrasbordosBfs(origen, destino);
+        // Decidir que algoritmo usar
+        int opcionAlgoritmo = DecidirAlgoritmo(criterio);
+
+        if (opcionAlgoritmo == 1) {
+            camino = bfs01Transbordos(origen, destino);
+        } else if (opcionAlgoritmo == 2) {
+            camino = dijkstra(origen, destino, criterio);
+        } else {
+            System.out.println("Criterio no soportado o algoritmo no definido.");
+            return null;
         }
-        else {
-             camino = dijkstra(origen, destino, criterio);
+
+        if (camino == null || camino.isEmpty()) {
+            return null;
         }
 
-
-        if (camino.isEmpty()) {
-            return null; // (((((Recordatorio para agregar excepción))))
-        }
-
+        // totales del camino ganador
         double tiempoTotal = 0;
         double costoTotal = 0;
         double distanciaTotal = 0;
-        int transbordos = camino.size() - 1;
+        int transbordos = 0;
+        TipoVehiculo vehiculoAnterior = null;
 
         for (int i = 0; i < camino.size() - 1; i++) {
-
             Parada actual = camino.get(i);
             Parada siguiente = camino.get(i + 1);
 
             for (Ruta ruta : adyacencia.get(actual)) {
-
                 if (ruta.getDestino().equals(siguiente)) {
-
                     tiempoTotal += ruta.getTiempo();
                     costoTotal += ruta.getCosto();
                     distanciaTotal += ruta.getDistancia();
+
+                    // Lógica real de transbordo (cambio de vehículo)
+                    if (vehiculoAnterior != null && vehiculoAnterior != ruta.getVehiculo()) {
+                        transbordos++;
+                    }
+                    vehiculoAnterior = ruta.getVehiculo();
                     break;
                 }
             }
         }
 
         return new ResultadoRuta(camino, tiempoTotal, costoTotal, distanciaTotal, transbordos);
-
     }
 
     private double obtenerPeso(Ruta r, Criterio criterio) {
@@ -101,6 +110,54 @@ public class Grafo {
     }
 
 
+    private List<Parada> bfs01Transbordos(Parada origen, Parada destino) {
+        Map<Parada, Integer> minTransbordos = new HashMap<>();
+        Map<Parada, Parada> anteriores = new HashMap<>();
+        Map<Parada, Ruta> rutaLlegada = new HashMap<>(); // Memoria de vehiculo
+
+        //doble queue
+        Deque<Parada> deque = new ArrayDeque<>();
+
+        for (Parada p : adyacencia.keySet()) {
+            minTransbordos.put(p, Integer.MAX_VALUE);
+        }
+
+        minTransbordos.put(origen, 0);
+        deque.addFirst(origen);
+
+        while (!deque.isEmpty()) {
+            Parada actual = deque.pollFirst();
+
+            if (actual.equals(destino)) break;
+
+            for (Ruta ruta : adyacencia.get(actual)) {
+                Parada vecino = ruta.getDestino();
+                TipoVehiculo vehiculoRuta = ruta.getVehiculo();
+
+                int peso = 0;
+                Ruta rutaPrevia = rutaLlegada.get(actual);
+                if (rutaPrevia != null && rutaPrevia.getVehiculo() != vehiculoRuta) {
+                    peso = 1;
+                }
+
+                int nuevosTransbordos = minTransbordos.get(actual) + peso;
+
+                if (nuevosTransbordos < minTransbordos.get(vecino)) {
+                    minTransbordos.put(vecino, nuevosTransbordos);
+                    anteriores.put(vecino, actual);
+                    rutaLlegada.put(vecino, ruta);
+
+                    if (peso == 0) {
+                        deque.addFirst(vecino); //si es el mismo vehiculo al frente
+                    } else {
+                        deque.addLast(vecino);  //sino al final
+                    }
+                }
+            }
+        }
+
+        return reconstruirCamino(anteriores, origen, destino);
+    }
 
     public int DecidirAlgoritmo( Criterio criterio) {
         switch (criterio) {
@@ -157,7 +214,6 @@ public class Grafo {
         PriorityQueue<Parada> cola =
                 new PriorityQueue<>(Comparator.comparingDouble(peso::get));
 
-        // Inicializar peso
         for (Parada p : adyacencia.keySet()) {
             peso.put(p, Double.POSITIVE_INFINITY);
         }
@@ -181,7 +237,7 @@ public class Grafo {
 
                 if (visitados.contains(vecino)) continue;
 
-                double nuevaDistancia =
+                double nuevaDistancia = //nuevo peso
                         peso.get(actual)
                                 + obtenerPeso(ruta, criterio);
 
@@ -219,40 +275,73 @@ public class Grafo {
     }
 
 
-    public void verificarEntradasYSalidas() {
+    public boolean esFuertementeConexo() {
+        if (adyacencia.isEmpty()) return true;
 
-        Map<Parada, Integer> conteoEntradas = new HashMap<>();
+        // una parada como punto de inicio
+        Parada inicio = adyacencia.keySet().iterator().next();
 
-        // Inicializar conteo de entradas
-        for (Parada parada : adyacencia.keySet()) {
-            conteoEntradas.put(parada, 0);
+        // chequea si se llega a todas las paradas desde 'inicio'
+        if (!alcanzaTodas(inicio, adyacencia)) {
+            return false;
         }
 
-        // Revisar salidas y contar entradas
+        // Grafo Transpuesto
+        Map<Parada, List<Parada>> grafoInvertido = new HashMap<>();
+        for (Parada p : adyacencia.keySet()) {
+            grafoInvertido.put(p, new ArrayList<>());
+        }
         for (Parada origen : adyacencia.keySet()) {
-
-            List<Ruta> rutas = adyacencia.get(origen);
-
-            // Verificar si hay salidas para origen
-            if (rutas.isEmpty()) {
-                System.out.println("La parada " + origen + " no tiene rutas de salida.");
-            }
-
-            // Conteo de entradas para el origen
-            for (Ruta ruta : rutas) {
-                Parada destino = ruta.getDestino();
-                conteoEntradas.put(destino, conteoEntradas.get(destino) + 1);
+            for (Ruta ruta : adyacencia.get(origen)) {
+                // se invierte
+                grafoInvertido.get(ruta.getDestino()).add(origen);
             }
         }
 
-        // Verificar si hay entradas entradas para todas las pradas
-        for (Parada parada : conteoEntradas.keySet()) {
-
-            if (conteoEntradas.get(parada) == 0) {
-                System.out.println("La parada " + parada + " no tiene rutas de entrada.");
-            }
-        }
+        // chequea si inicio se llaga desde las demas paradas
+        return alcanzaTodasInvertido(inicio, grafoInvertido);
     }
+
+    // BFS normal
+    private boolean alcanzaTodas(Parada inicio, Map<Parada, List<Ruta>> grafo) {
+        Set<Parada> visitados = new HashSet<>();
+        Queue<Parada> cola = new LinkedList<>();
+
+        cola.add(inicio);
+        visitados.add(inicio);
+
+        while (!cola.isEmpty()) {
+            Parada actual = cola.poll();
+            for (Ruta ruta : grafo.get(actual)) {
+                if (!visitados.contains(ruta.getDestino())) {
+                    visitados.add(ruta.getDestino());
+                    cola.add(ruta.getDestino());
+                }
+            }
+        }
+        return visitados.size() == grafo.keySet().size();
+    }
+
+    //BFS en el grafo invertido
+    private boolean alcanzaTodasInvertido(Parada inicio, Map<Parada, List<Parada>> grafoInvertido) {
+        Set<Parada> visitados = new HashSet<>();
+        Queue<Parada> cola = new LinkedList<>();
+
+        cola.add(inicio);
+        visitados.add(inicio);
+
+        while (!cola.isEmpty()) {
+            Parada actual = cola.poll();
+            for (Parada vecino : grafoInvertido.get(actual)) {
+                if (!visitados.contains(vecino)) {
+                    visitados.add(vecino);
+                    cola.add(vecino);
+                }
+            }
+        }
+        return visitados.size() == grafoInvertido.keySet().size();
+    }
+
     public void eliminarParada(Parada p) {
         if (!adyacencia.containsKey(p)) return;
 
