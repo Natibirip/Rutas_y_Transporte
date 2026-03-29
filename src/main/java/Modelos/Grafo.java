@@ -253,6 +253,61 @@ public class Grafo {
         return reconstruirCamino(anteriores, origen, destino);
     }
 
+
+    public List<Parada> bellmanFord(Parada origen, Parada destino, Criterio criterio) {
+
+        Map<Parada, Double> pesos = new HashMap<>();
+        Map<Parada, Parada> anteriores = new HashMap<>();
+
+
+        for (Parada p : adyacencia.keySet()) {
+            pesos.put(p, Double.POSITIVE_INFINITY);
+        }
+
+        pesos.put(origen, 0.0);
+
+        int V = adyacencia.size();
+
+
+        for (int i = 0; i < V - 1; i++) { // relajar aristas V-1 veces
+
+            for (Parada actual : adyacencia.keySet()) {
+
+                for (Ruta ruta : adyacencia.get(actual)) {
+
+                    Parada vecino = ruta.getDestino();
+
+                    double nuevaDistancia =
+                            pesos.get(actual) + obtenerPeso(ruta, criterio);
+
+                    if (nuevaDistancia < pesos.get(vecino)) {
+                        pesos.put(vecino, nuevaDistancia);
+                        anteriores.put(vecino, actual);
+                    }
+                }
+            }
+        }
+
+        // Detectar si hay ciclos ngativos
+        for (Parada actual : adyacencia.keySet()) {
+
+            for (Ruta ruta : adyacencia.get(actual)) {
+
+                Parada vecino = ruta.getDestino();
+
+                double nuevaDistancia =
+                        pesos.get(actual) + obtenerPeso(ruta, criterio);
+
+                if (nuevaDistancia < pesos.get(vecino)) {
+                    throw new RuntimeException("Ciclo negativo detectado");
+                }
+            }
+        }
+
+
+        return reconstruirCamino(anteriores, origen, destino);
+    }
+
     private List<Parada> reconstruirCamino(
             Map<Parada, Parada> anteriores,
             Parada origen,
