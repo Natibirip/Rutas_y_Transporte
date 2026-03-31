@@ -308,6 +308,88 @@ public class Grafo {
         return reconstruirCamino(anteriores, origen, destino);
     }
 
+    public List<Parada> floydWarshallCamino(Parada origen, Parada destino, Criterio criterio) {
+
+        int n = adyacencia.size();
+
+        List<Parada> listaParadas = new ArrayList<>(adyacencia.keySet());
+        Map<Parada, Integer> indice = new HashMap<>();
+
+        for (int i = 0; i < n; i++) {
+            indice.put(listaParadas.get(i), i);
+        }
+
+        double[][] dist = new double[n][n];
+        Parada[][] next = new Parada[n][n];
+
+        // Inicializar
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (i == j) {
+                    dist[i][j] = 0;
+                } else {
+                    dist[i][j] = Double.POSITIVE_INFINITY;
+                }
+                next[i][j] = null;
+            }
+        }
+
+        // Llenar las rutas directas
+        for (Parada origenP : adyacencia.keySet()) {
+            int i = indice.get(origenP);
+
+            for (Ruta ruta : adyacencia.get(origenP)) {
+                int j = indice.get(ruta.getDestino());
+
+                dist[i][j] = obtenerPeso(ruta, criterio);
+                next[i][j] = ruta.getDestino();
+            }
+        }
+
+        // Floyd-Warshall
+        for (int k = 0; k < n; k++) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+
+                    if (dist[i][k] + dist[k][j] < dist[i][j]) {
+
+                        dist[i][j] = dist[i][k] + dist[k][j];
+
+
+                        next[i][j] = next[i][k];//Actualizacion
+                    }
+                }
+            }
+        }
+
+        // Detectar ciclos negativos
+        for (int i = 0; i < n; i++) {
+            if (dist[i][i] < 0) {
+                throw new RuntimeException("Ciclo negativo detectado");
+            }
+        }
+
+        // RECONSTRUIR CAMINO
+        List<Parada> camino = new ArrayList<>();
+
+        Integer i = indice.get(origen);
+        Integer j = indice.get(destino);
+
+        if (next[i][j] == null) {
+            return camino; // no hay ruta
+        }
+
+        Parada actual = origen;
+        camino.add(actual);
+
+        while (!actual.equals(destino)) {
+            actual = next[indice.get(actual)][j];
+            camino.add(actual);
+        }
+
+        return camino;
+    }
+
     private List<Parada> reconstruirCamino(
             Map<Parada, Parada> anteriores,
             Parada origen,
