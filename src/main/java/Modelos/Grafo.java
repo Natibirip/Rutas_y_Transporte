@@ -96,6 +96,76 @@ public class Grafo {
         return new ResultadoRuta(camino, tiempoTotal, costoTotal, distanciaTotal, transbordos);
     }
 
+    public ResultadoRuta calcularRutaAlternativa(Parada origen, Parada destino, Criterio criterio, List<Parada> ruta1, int algoritmoElegir) {
+
+        ResultadoRuta mejorAlternativa = null;
+
+        // recorrerruta original
+        for (int i = 0; i < ruta1.size() - 1; i++) {
+
+            Parada desde = ruta1.get(i);
+            Parada hacia = ruta1.get(i + 1);
+
+            // eliminar temporalmente la ruta
+            Ruta rutaEliminada = null;
+
+            for (Ruta r : adyacencia.get(desde)) {
+                if (r.getDestino().equals(hacia)) {
+                    rutaEliminada = r;
+                    break;
+                }
+            }
+
+            if (rutaEliminada == null) continue;
+
+            adyacencia.get(desde).remove(rutaEliminada);
+
+            // recalcular ruta
+            List<Parada> nuevoCamino = null;
+            if (algoritmoElegir == 1) {
+                nuevoCamino = bfs01Transbordos(origen, destino);
+            } else if (algoritmoElegir == 2) {
+                nuevoCamino = dijkstra(origen, destino, criterio);
+            } else if (algoritmoElegir == 3) {
+                nuevoCamino = bellmanFord(origen, destino, criterio);
+            }
+
+            //  verificar valides
+
+            if (nuevoCamino != null && !nuevoCamino.isEmpty() && !nuevoCamino.equals(ruta1)) {
+
+                ResultadoRuta resultado = calcularRuta(origen, destino, criterio);
+
+                if(criterio == Criterio.TIEMPO){
+                    if (mejorAlternativa == null || resultado.getTiempoTotal() < mejorAlternativa.getTiempoTotal()) {
+                        mejorAlternativa = resultado;
+                    }
+                }
+                if(criterio == Criterio.COSTO){
+                    if (mejorAlternativa == null || resultado.getCostoTotal() < mejorAlternativa.getCostoTotal()) {
+                        mejorAlternativa = resultado;
+                    }
+                }
+                if(criterio == Criterio.DISTANCIA){
+                    if (mejorAlternativa == null || resultado.getDistanciaTotal() < mejorAlternativa.getDistanciaTotal()) {
+                        mejorAlternativa = resultado;
+                    }
+                }
+                if(criterio == Criterio.TRASBORDOS){
+                    if (mejorAlternativa == null || resultado.getTrasbordos() < mejorAlternativa.getTrasbordos()) {
+                        mejorAlternativa = resultado;
+                    }
+                }
+
+            }
+
+            //  restaurar la ruta
+            adyacencia.get(desde).add(rutaEliminada);
+        }
+
+        return mejorAlternativa;
+    }
+
     private double obtenerPeso(Ruta r, Criterio criterio) {
         switch (criterio) {
             case TIEMPO:
