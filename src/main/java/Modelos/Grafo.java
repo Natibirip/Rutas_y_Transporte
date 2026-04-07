@@ -238,6 +238,46 @@ public class Grafo {
 
         return mejorAlternativa;
     }
+    /*
+    Nombre: calcularRutaAlternativa
+
+    Parámetros:
+    @param origen Parada inicial del recorrido.
+    @param destino Parada final del recorrido.
+    @param criterio Criterio de optimización (TIEMPO, COSTO, DISTANCIA, TRASBORDOS).
+    @param ruta1 Ruta original previamente calculada.
+    @param algoritmoElegir Algoritmo a utilizar:
+                           1: BFS 0-1 (trasbordos)
+                           2: Dijkstra
+                           3: Bellman-Ford
+
+    Retorno:
+    ResultadoRuta → Objeto que representa la mejor ruta alternativa encontrada.
+                    Retorna null si no existe una alternativa válida.
+
+    Descripción:
+    Calcula una ruta alternativa distinta a una ruta original dada. Para ello,
+    recorre cada segmento de la ruta original y elimina temporalmente esa conexión
+    del grafo. Luego, recalcula una nueva ruta utilizando el algoritmo seleccionado.
+    Si la nueva ruta es válida y diferente a la original, se evalúa según el criterio
+    de optimización y se mantiene como mejor alternativa si mejora el resultado actual.
+    Finalmente, se restaura la ruta eliminada y continúa el proceso hasta evaluar todas
+    las posibles variaciones.
+
+    Complejidad temporal:
+    O(L * (V + E) log V) en el peor caso, donde L es la longitud de la ruta original,
+    debido a que se ejecuta un algoritmo de búsqueda por cada arista eliminada
+    (principalmente Dijkstra).
+
+    Θ(L * (V + E) log V) en el caso promedio.
+
+    Ω(L * V) en el mejor caso, cuando se encuentran rápidamente alternativas válidas.
+
+    Complejidad espacial:
+    O(V), debido al uso de estructuras auxiliares en los algoritmos de búsqueda.
+
+
+*/
 
     private double obtenerPeso(Ruta r, Criterio criterio) {
         switch (criterio) {
