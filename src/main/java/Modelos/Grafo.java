@@ -21,6 +21,25 @@ public class Grafo {
         adyacencia = new HashMap<>();
     }
 
+
+    public Map<Parada, List<Ruta>> getAdyacencia() {
+        return adyacencia;
+    }
+    /*
+    Nombre: getAdyacencia
+
+    Parámetros:
+    Ninguno
+
+    Retorno:
+    Map<Parada, List<Ruta>> → Estructura de adyacencia que representa el grafo.
+
+    Descripción:
+    Retorna el mapa de adyacencia del grafo, donde cada clave es una parada
+    y su valor es la lista de rutas (conexiones) que salen de dicha parada.
+    Permite acceder a la estructura interna del grafo para consultas o procesamiento.
+*/
+
     public void agregarParada(Parada p) {
         if (p == null) {
             throw new IllegalArgumentException("La parada no puede ser null");
@@ -28,6 +47,19 @@ public class Grafo {
 
         adyacencia.putIfAbsent(p, new ArrayList<>());
     }
+    /*
+    Nombre: agregarParada
+
+    Parámetros:
+    @param p Parada que se desea agregar al grafo.
+
+    Retorno: void
+
+    Descripción:
+    Agrega una nueva parada (nodo) al grafo.
+    Valida que la parada no sea null y, si no existe previamente en la estructura,
+    la inserta en el mapa de adyacencia con una lista vacía de rutas asociadas.
+*/
 
     public void agregarRuta(Parada origen, Ruta ruta) {
 
@@ -41,10 +73,21 @@ public class Grafo {
 
         adyacencia.get(origen).add(ruta);
     }
+/*
+    Nombre: agregarRuta
 
-    public Map<Parada, List<Ruta>> getAdyacencia() {
-        return adyacencia;
-    }
+    Parámetros:
+    @param origen Parada desde la cual parte la ruta.
+    @param ruta Ruta que contiene destino, tiempo, costo, distancia y tipo de vehículo.
+
+    Retorno: void
+
+    Descripción:
+    Agrega una conexión (arista) al grafo desde una parada de origen hacia otra parada destino.
+    Valida que los parámetros no sean nulos y que la parada de origen exista en el grafo.
+    Si las validaciones son correctas, la ruta se añade a la lista de adyacencia del nodo origen.
+*/
+
 
 
     public ResultadoRuta calcularRuta(Parada origen, Parada destino, Criterio criterio) {
@@ -95,6 +138,36 @@ public class Grafo {
 
         return new ResultadoRuta(camino, tiempoTotal, costoTotal, distanciaTotal, transbordos);
     }
+    /*
+    Nombre: calcularRuta
+
+    Parámetros:
+    @param origen Parada inicial del recorrido.
+    @param destino Parada final del recorrido.
+    @param criterio Criterio de optimización (TIEMPO, COSTO, DISTANCIA, TRASBORDOS).
+
+    Retorno:
+    ResultadoRuta → Objeto que contiene el camino óptimo y sus métricas totales.
+
+    Descripción:
+    Calcula la mejor ruta entre dos paradas según el criterio especificado.
+    Primero decide qué algoritmo utilizar (BFS 0-1 o Dijkstra) y obtiene el camino óptimo.
+    Luego recorre dicho camino para calcular los valores acumulados de tiempo, costo,
+    distancia y número de transbordos (cambios de vehículo).
+    Finalmente retorna un objeto con toda la información de la ruta encontrada.
+
+    Complejidad temporal:
+
+    - BFS 0-1 (Trasbordos):
+      O(V + E)
+
+    - Dijkstra:
+      O((V+E)log V)
+
+    Complejidad total:
+    - O((V+E) log V) en el peor caso (cuando usa Dijkstra)
+    - Ω(V) en el mejor caso
+*/
 
     private double obtenerPeso(Ruta r, Criterio criterio) {
         switch (criterio) {
@@ -108,6 +181,21 @@ public class Grafo {
                 throw new IllegalArgumentException("Criterio inválido");
         }
     }
+    /*
+    Nombre: obtenerPeso
+
+    Parámetros:
+    @param r Ruta de la cual se desea obtener el peso.
+    @param criterio Criterio de optimización (TIEMPO, COSTO, DISTANCIA).
+
+    Retorno:
+    double → Valor del peso correspondiente según el criterio.
+
+    Descripción:
+    Determina el peso de una ruta en función del criterio especificado.
+    Retorna el tiempo, costo o distancia de la ruta según corresponda.
+    Si el criterio no es válido, lanza una excepción.
+*/
 
 
     private List<Parada> bfs01Transbordos(Parada origen, Parada destino) {
@@ -159,6 +247,37 @@ public class Grafo {
         return reconstruirCamino(anteriores, origen, destino);
     }
 
+    /*
+    Nombre: bfs01Transbordos
+
+    Parámetros:
+    @param origen Parada inicial del recorrido.
+    @param destino Parada final del recorrido.
+
+    Retorno:
+    List<Parada> → Lista de paradas que representa el camino con menor número de transbordos.
+
+    Descripción:
+    Implementa una variante del algoritmo BFS 0-1 para encontrar el camino con menor cantidad
+    de transbordos entre dos paradas. Utiliza una deque (cola doble) para priorizar los movimientos
+    que no implican cambio de vehículo (peso 0) sobre aquellos que sí lo implican (peso 1).
+    Mantiene un registro del número mínimo de transbordos hacia cada parada y reconstruye
+    el camino óptimo al final.
+
+    Complejidad temporal:
+    O(V + E)
+
+    Θ(V + E) en el caso promedio, ya que cada nodo y arista se procesa como máximo una vez
+    con operaciones constantes en la deque.
+
+    Ω(V) en el mejor caso, cuando el destino se encuentra rápidamente sin explorar el grapo completo.
+
+    Complejidad espacial:
+    O(V), debido al uso de mapas auxiliares (minTransbordos, anteriores, rutaLlegada)
+    y la estructura deque.
+
+*/
+
     public int DecidirAlgoritmo( Criterio criterio) {
         switch (criterio) {
             case TRASBORDOS:
@@ -171,6 +290,24 @@ public class Grafo {
         }
         return 0;
     }
+    /*
+        Nombre: DecidirAlgoritmo
+
+        Parámetros:
+        @param criterio Criterio de optimización seleccionado.
+
+        Retorno:
+        int → Identificador del algoritmo a utilizar.
+               1: BFS 0-1 (trasbordos)
+               2: Dijkstra (tiempo, costo, distancia)
+               0: Criterio no válido
+
+        Descripción:
+        Determina qué algoritmo de búsqueda se debe utilizar en función del criterio especificado.
+        Si el criterio es TRASBORDOS, selecciona BFS 0-1 para minimizar cambios de vehículo.
+        Si el criterio es TIEMPO, COSTO o DISTANCIA, selecciona Dijkstra para optimizar el peso correspondiente.
+    */
+
 
     public List<Parada> TrasbordosBfs(Parada origen, Parada destino) {
 
@@ -252,7 +389,39 @@ public class Grafo {
 
         return reconstruirCamino(anteriores, origen, destino);
     }
+/*
+    Nombre: dijkstra
 
+    Parámetros:
+    @param origen Parada inicial del recorrido.
+    @param destino Parada final del recorrido.
+    @param criterio Criterio de optimización (TIEMPO, COSTO, DISTANCIA).
+
+    Retorno:
+    List<Parada> → Lista de paradas que representa el camino óptimo encontrado.
+
+    Descripción:
+    Implementa el algoritmo de Dijkstra para calcular el camino más corto entre dos paradas
+    según el criterio especificado. Utiliza una cola de prioridad para seleccionar en cada
+    iteración la parada con menor peso acumulado. A medida que recorre el grafo, actualiza
+    las distancias mínimas hacia cada nodo y almacena el nodo anterior para reconstruir el camino.
+    El proceso termina cuando se alcanza el destino o cuando no hay más nodos por explorar.
+
+    Complejidad temporal:
+    O((V+E) log V) en el peor caso, debido al uso de la cola de prioridad (PriorityQueue)
+    y la posible inserción de múltiples elementos.
+
+    Θ(E log V) en el caso promedio.
+
+    Ω(V) en el mejor caso, cuando el destino se encuentra rápidamente con pocas exploraciones.
+
+    Complejidad espacial:
+    O(V), por el uso de estructuras auxiliares como mapas y conjuntos (peso, anteriores, visitados).
+
+    Observaciones:
+    - No soporta pesos negativos en las rutas.
+    - Utiliza un enfoque greedy, seleccionando siempre el nodo con menor costo acumulado.
+*/
 
     public List<Parada> bellmanFord(Parada origen, Parada destino, Criterio criterio) {
 
@@ -307,6 +476,38 @@ public class Grafo {
 
         return reconstruirCamino(anteriores, origen, destino);
     }
+    /*
+    Nombre: bellmanFord
+
+    Parámetros:
+    @param origen Parada inicial del recorrido.
+    @param destino Parada final del recorrido.
+    @param criterio Criterio de optimización (TIEMPO, COSTO, DISTANCIA).
+
+    Retorno:
+    List<Parada> → Lista de paradas que representa el camino óptimo encontrado.
+
+    Descripción:
+    Implementa el algoritmo de Bellman-Ford para calcular el camino más corto entre dos paradas.
+    Inicializa las distancias y luego relaja todas las aristas del grafo V-1 veces, donde V es el
+    número de nodos. Este proceso garantiza encontrar la solución óptima incluso en presencia de
+    pesos negativos. Posteriormente, realiza una iteración adicional para detectar ciclos negativos.
+    Finalmente, reconstruye el camino desde el destino hasta el origen.
+
+    Complejidad temporal:
+    O(V * E) en el peor y caso promedio, debido a que se recorren todas las aristas
+    del grafo en cada una de las V-1 iteraciones.
+
+    Ω(E) en el mejor caso, considerando que al menos se debe recorrer el grafo una vez.
+
+    Complejidad espacial:
+    O(V), por el uso de estructuras auxiliares como mapas de distancias y nodos anteriores.
+
+    Observaciones:
+    - Soporta pesos negativos, a diferencia de Dijkstra.
+    - Permite detectar ciclos negativos en el grafo.
+    - Es menos eficiente que Dijkstra, pero más flexible en escenarios complejos.
+*/
 
     private List<Parada> reconstruirCamino(
             Map<Parada, Parada> anteriores,
@@ -328,6 +529,25 @@ public class Grafo {
 
         return new ArrayList<>(); // no hay camino
     }
+    /*
+    Nombre: reconstruirCamino
+
+    Parámetros:
+    @param anteriores Mapa que indica el nodo previo en el camino para cada parada.
+    @param origen Parada inicial del recorrido.
+    @param destino Parada final del recorrido.
+
+    Retorno:
+    List<Parada> → Lista de paradas que representa el camino reconstruido.
+                   Retorna una lista vacía si no existe camino.
+
+    Descripción:
+    Reconstruye el camino desde el nodo destino hasta el origen utilizando el mapa
+    de nodos anteriores generado por los algoritmos de búsqueda. Recorre el mapa
+    desde el destino hacia atrás, insertando cada parada al inicio de la lista para
+    obtener el orden correcto. Finalmente, verifica que el camino reconstruido comience
+    en el origen; de lo contrario, retorna una lista vacía indicando que no existe ruta válida.
+*/
 
 
     public boolean esFuertementeConexo() {
@@ -356,6 +576,23 @@ public class Grafo {
         // chequea si inicio se llaga desde las demas paradas
         return alcanzaTodasInvertido(inicio, grafoInvertido);
     }
+    /*
+    Nombre: esFuertementeConexo
+
+    Parámetros:
+    Ninguno
+
+    Retorno:
+    boolean → true si el grafo es fuertemente conexo, false en caso contrario.
+
+    Descripción:
+    Determina si el grafo es fuertemente conexo, es decir, si existe un camino
+    entre cada par de paradas en ambas direcciones. Primero verifica si desde una
+    parada inicial se puede alcanzar a todas las demás utilizando BFS. Luego construye
+    el grafo transpuesto (invirtiendo las direcciones de las rutas) y verifica si desde
+    esa misma parada se puede llegar nuevamente a todas las demás. Si ambas condiciones
+    se cumplen, el grafo es fuertemente conexo.
+*/
 
     // BFS normal
     private boolean alcanzaTodas(Parada inicio, Map<Parada, List<Ruta>> grafo) {
@@ -376,6 +613,36 @@ public class Grafo {
         }
         return visitados.size() == grafo.keySet().size();
     }
+    /*
+    Nombre: alcanzaTodas
+
+    Parámetros:
+    @param inicio Parada desde la cual se inicia el recorrido.
+    @param grafo Estructura de adyacencia que representa el grafo.
+
+    Retorno:
+    boolean → true si se puede llegar a todas las paradas desde el inicio, false en caso contrario.
+
+    Descripción:
+    Realiza un recorrido BFS desde una parada inicial para determinar
+    si es posible alcanzar todas las demás paradas del grafo. Utiliza una cola para explorar
+    los nodos de manera progresiva y un conjunto para evitar visitar nodos repetidos.
+    Al finalizar, compara la cantidad de nodos visitados con el total de nodos del grafo.
+
+    Complejidad temporal:
+    O(V + E), ya que cada parada (nodo) y cada ruta (arista) se procesan como máximo una vez.
+
+    Θ(V + E) en el caso promedio.
+
+    Ω(V) en el mejor caso, cuando el grafo es pequeño o se alcanza rápidamente a todos los nodos.
+
+    Complejidad espacial:
+    O(V), debido al uso de la cola y el conjunto de nodos visitados.
+
+    Observaciones:
+    - Implementa el algoritmo BFS clásico.
+    - Es utilizado como parte de la verificación de conectividad del grafo.
+*/
 
     //BFS en el grafo invertido
     private boolean alcanzaTodasInvertido(Parada inicio, Map<Parada, List<Parada>> grafoInvertido) {
@@ -408,11 +675,38 @@ public class Grafo {
         // Eliminar la parada
         adyacencia.remove(p);
     }
+    /*
+        Nombre: eliminarParada
 
+        Parámetros:
+        @param p Parada que se desea eliminar del grafo.
+
+        Retorno: void
+
+        Descripción:
+        Elimina una parada del grafo junto con todas las rutas asociadas a ella.
+        Primero verifica si la parada existe; si no existe, no realiza ninguna acción.
+        Luego recorre todas las listas de adyacencia para eliminar las rutas que tienen
+        como destino la parada indicada. Finalmente, elimina la parada del mapa de adyacencia.
+    */
     public void eliminarRuta(Parada origen, Parada destino) {
         if (adyacencia.containsKey(origen)) {
             adyacencia.get(origen).removeIf(ruta -> ruta.getDestino().equals(destino));
         }
     }
+    /*
+    Nombre: eliminarRuta
+
+    Parámetros:
+    @param origen Parada desde la cual parte la ruta a eliminar.
+    @param destino Parada destino de la ruta a eliminar.
+
+    Retorno: void
+
+    Descripción:
+    Elimina una ruta específica del grafo desde una parada de origen hacia una parada destino.
+    Verifica si la parada de origen existe en el grafo y, en caso afirmativo, elimina de su lista
+    de adyacencia todas las rutas cuyo destino coincida con la parada indicada.
+*/
 
 }
