@@ -700,7 +700,38 @@ public class Grafo {
 
         return camino;
     }
+    /*
+        Nombre: floydWarshallCamino
 
+        Parámetros:
+        @param origen Parada inicial del recorrido.
+        @param destino Parada final del recorrido.
+        @param criterio Criterio de optimización (TIEMPO, COSTO, DISTANCIA).
+
+        Retorno:
+        List<Parada> → Lista de paradas que representa el camino óptimo entre el origen y el destino.
+                       Retorna una lista vacía si no existe ruta.
+
+        Descripción:
+        Implementa el algoritmo de Floyd-Warshall para calcular los caminos más cortos entre
+        todos los pares de nodos del grafo. Inicializa una matriz de distancias y una matriz
+        auxiliar (next) para reconstrucción de caminos. Luego, mediante tres bucles anidados,
+        evalúa si pasar por un nodo intermedio mejora la distancia entre dos nodos.
+        Al finalizar, detecta ciclos negativos verificando la diagonal de la matriz.
+        Finalmente, reconstruye el camino desde el origen hasta el destino utilizando la
+        matriz next.
+
+        Complejidad temporal:
+        O(V³), debido a los tres bucles anidados que recorren todos los nodos.
+
+        Θ(V³) en el caso promedio.
+
+        Ω(V³) en el mejor caso, ya que siempre se ejecutan todas las iteraciones.
+
+        Complejidad espacial:
+        O(V²), por el uso de las matrices dist y next.
+
+    */
     private List<Parada> reconstruirCamino(
             Map<Parada, Parada> anteriores,
             Parada origen,
