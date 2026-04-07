@@ -202,6 +202,9 @@ public class Grafo {
             } else if (algoritmoElegir == 3) {
                 nuevoCamino = bellmanFord(origen, destino, criterio);
             }
+            else if (algoritmoElegir == 4) {
+                nuevoCamino = floydWarshallCamino(origen,destino,criterio);
+            }
 
             //  verificar valides
 
